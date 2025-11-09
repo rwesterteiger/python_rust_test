@@ -1,4 +1,5 @@
 use glam::{Vec3, vec3};
+use sphrs::{Coordinates, HarmonicsSet, RealSH, SHEval};
 
 use crate::mesh::{Mesh, Vertex};
 
@@ -34,7 +35,9 @@ pub fn subdiv_rec(m : &mut Mesh, a_idx : u32, b_idx : u32, c_idx : u32, depth : 
   rec(ab_idx, bc_idx, ca_idx)
 }
 
-pub fn sphere_mesh(depth : usize) -> Mesh {
+pub fn sphere_mesh(depth : usize, radius_func : impl Fn(f32, f32, f32) -> f32) -> Mesh {
+  println!("creating sphere mesh");
+  
   let mut m = Mesh::new();
 
   let v = [
@@ -67,5 +70,32 @@ pub fn sphere_mesh(depth : usize) -> Mesh {
     subdiv_rec(&mut m, a, b, c, depth);
   }
 
+  for p in m.vertices.iter_mut() {
+    let r = radius_func(p.pos.x, p.pos.y, p.pos.z);
+    p.pos *= r;
+  }
+
   m
+}
+
+pub fn sh_mesh(depth : usize) -> Mesh {
+  let degree = 1;
+
+  let sh = HarmonicsSet::new(degree, RealSH::Spherical);
+
+  let coeff = vec![1.0; sh.num_sh()];
+  let coeff = [0.0, 0.0, 0.0, 1.0];
+
+  println!("{:?}", coeff);
+
+  let radius_func = |x,y,z| {
+    let p = Coordinates::cartesian(x, y, z);
+    let set = sh.eval_with_coefficients(&p, coeff.as_slice());
+    let r : f32 = set.iter().sum();
+
+
+    r.abs()
+  };
+
+  sphere_mesh(depth, radius_func)
 }

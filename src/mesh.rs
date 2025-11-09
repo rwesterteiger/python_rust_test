@@ -140,8 +140,3 @@ pub fn cube_mesh(half_extents: Vec3) -> Mesh {
       indices,
     }
 }
-
-
-fn spherical_hamornics_mesh() -> Mesh {
-  spherical_harmonics::sphere_mesh(0)
-}

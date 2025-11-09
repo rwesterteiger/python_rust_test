@@ -23,7 +23,7 @@ import make_mesh
 class MeshViewer(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-
+        
         w = Qt3DExtras.Qt3DWindow()
         w.defaultFrameGraph().setClearColor(QColor("#101218"))
 
@@ -37,7 +37,7 @@ class MeshViewer(QtWidgets.QWidget):
 
         # Camera
         w.camera().lens().setPerspectiveProjection(60, 1.0, 0.1, 100)
-        w.camera().setPosition(QVector3D(0, 2, 5))
+        w.camera().setPosition(QVector3D(0, 1, 1))
         w.camera().setViewCenter(QVector3D(0, 0, 0))
 
         # For camera controls

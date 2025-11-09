@@ -13,7 +13,7 @@ use crate::{mesh::{self, Mesh}, spherical_harmonics};
 
   #[pyfunction]
   fn create_mesh(py: Python<'_>) -> PyResult<Mesh>  {
-    let mesh = spherical_harmonics::sphere_mesh(4);
+    let mesh = spherical_harmonics::sh_mesh(4);
 
     return Ok(mesh);
 
