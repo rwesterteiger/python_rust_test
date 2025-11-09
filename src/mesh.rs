@@ -1,13 +1,17 @@
+use std::default;
+
 use glam::{Vec3, vec3};
 use ndarray::Array2;
 use numpy::{Ix2, PyArray, ToPyArray};
-use pyo3::{Bound, IntoPyObject, PyResult, Python, types::PyTuple};
+use pyo3::{Bound, IntoPyObject, PyResult, Python, pyclass, pymethods, types::PyTuple};
+
+use crate::spherical_harmonics;
 
 
-fn to_pyarray3<'py>(py: Python<'py>, v : Vec<Vec3>) -> Bound<'py, PyArray<f32, Ix2>> {
+fn to_pyarray3<'py>(py: Python<'py>, v : impl ExactSizeIterator<Item = Vec3>) -> Bound<'py, PyArray<f32, Ix2>> {
   let mut a = Array2::<f32>::zeros((v.len(), 3));
 
-  for (idx, p) in v.into_iter().enumerate() {
+  for (idx, p) in v.enumerate() {
     a[[idx, 0]] = p.x;
     a[[idx, 1]] = p.y;
     a[[idx, 2]] = p.z;
@@ -17,17 +21,50 @@ fn to_pyarray3<'py>(py: Python<'py>, v : Vec<Vec3>) -> Bound<'py, PyArray<f32, I
 }
 
 
+
+#[derive(Debug,Clone)]
+pub struct Vertex { 
+  pub pos  : Vec3,
+  pub norm : Vec3,
+}
+
+#[derive(Default,Debug)]
+#[pyclass]
 pub struct Mesh {
-  vtx_pos  : Vec<Vec3>,
-  vtx_norm : Vec<Vec3>,
-  vtx_idxs : Vec<u32>,  
+  pub vertices : Vec<Vertex>,
+  pub indices  : Vec<u32>,  
 }
 
 impl Mesh {
-  pub fn to_numpy<'py>(self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
-    let pos  = to_pyarray3(py, self.vtx_pos);
-    let norm = to_pyarray3(py, self.vtx_norm);
-    let idxs = self.vtx_idxs.to_pyarray(py);
+  pub fn new() -> Self {
+    Self::default()
+  }
+
+  pub fn get(&self, idx : u32) -> &Vertex {
+    &self.vertices[idx as usize]
+  }
+
+  pub fn add_vtx(&mut self, pos : Vec3, norm : Vec3) -> u32 {
+    let next_idx : u32 = self.vertices.len().try_into().unwrap();
+
+    self.vertices.push(Vertex { pos, norm });
+    self.indices.push(next_idx);
+
+    next_idx
+  }
+
+  pub fn ref_vtx(&mut self, idx : u32) {
+    self.indices.push(idx);
+  }
+}
+
+
+#[pymethods]
+impl Mesh {
+  pub fn to_numpy<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyTuple>> {
+    let pos  = to_pyarray3(py, self.vertices.iter().map(|v| v.pos ));
+    let norm = to_pyarray3(py, self.vertices.iter().map(|v| v.norm));
+    let idxs = self.indices.to_pyarray(py);
 
     (pos, norm, idxs).into_pyobject(py)
   }
@@ -88,17 +125,23 @@ pub fn cube_mesh(half_extents: Vec3) -> Mesh {
         vec3(0.0, -1.0, 0.0),
     ];
 
+    let vertices : Vec<_> = vtx_pos.into_iter().zip(vtx_norm.into_iter()).map(|(pos, norm)| Vertex { pos, norm }).collect();
+
     // Two triangles per face: (0,1,2) and (0,2,3) with an offset per face
-    let mut vtx_idxs = Vec::with_capacity(6 * 6);
+    let mut indices = Vec::with_capacity(6 * 6);
 
     for face in 0..6u32 {
         let o = face * 4;
-        vtx_idxs.extend_from_slice(&[o + 0, o + 1, o + 2, o + 0, o + 2, o + 3]);
+        indices.extend_from_slice(&[o + 0, o + 1, o + 2, o + 0, o + 2, o + 3]);
     }
 
     Mesh {
-        vtx_pos,
-        vtx_norm,
-        vtx_idxs
+      vertices,
+      indices,
     }
+}
+
+
+fn spherical_hamornics_mesh() -> Mesh {
+  spherical_harmonics::sphere_mesh(0)
 }

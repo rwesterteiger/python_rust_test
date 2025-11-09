@@ -37,7 +37,7 @@ class MeshViewer(QtWidgets.QWidget):
 
         # Camera
         w.camera().lens().setPerspectiveProjection(60, 1.0, 0.1, 100)
-        w.camera().setPosition(QVector3D(0, 5, 10))
+        w.camera().setPosition(QVector3D(0, 2, 5))
         w.camera().setViewCenter(QVector3D(0, 0, 0))
 
         # For camera controls
@@ -79,6 +79,8 @@ class MeshViewer(QtWidgets.QWidget):
 
     def createTorus(self):
       # Material
+
+
       self.material = Qt3DExtras.QPhongMaterial(self.rootEntity)
       self.material.setDiffuse(QColor(255,0,0))
 
@@ -172,7 +174,8 @@ class MeshViewer(QtWidgets.QWidget):
 
 
     def _createMesh(self):
-        pos, norm, idxs = pytest_lib.create_mesh()
+        mesh = pytest_lib.create_mesh()
+        pos, norm, idxs = mesh.to_numpy()
 
         return make_mesh.make_mesh_renderer(self.rootEntity, pos, norm, idxs)
         m = Qt3DExtras.QTorusMesh()

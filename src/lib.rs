@@ -1,4 +1,5 @@
 mod mesh;
+mod spherical_harmonics;
 
 use pyo3::pymodule;
 
@@ -7,14 +8,16 @@ mod pytest_lib {
 use glam::vec3;
 use pyo3::{prelude::*, types::PyTuple};
 
-use crate::mesh;
+use crate::{mesh::{self, Mesh}, spherical_harmonics};
 
 
   #[pyfunction]
-  fn create_mesh(py: Python<'_>) -> PyResult<Py<PyTuple>>  {
-    let mesh = mesh::cube_mesh(vec3(1.0, 1.0, 1.0));
+  fn create_mesh(py: Python<'_>) -> PyResult<Mesh>  {
+    let mesh = spherical_harmonics::sphere_mesh(4);
 
-    Ok(mesh.to_numpy(py)?.unbind())
+    return Ok(mesh);
+
+    // Ok(mesh.to_numpy(py)?.unbind())
   }
 }
 
