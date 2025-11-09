@@ -17,5 +17,8 @@ name = "pytest_lib"
 crate-type = ["cdylib"]
 
 [dependencies]
+glam = "0.30.9"
+ndarray = "0.16.1"
+numpy = "0.27.0"
 pyo3 = { version = "0.27.1", features = ["extension-module"] }
 # pyo3 = { version = "0.27.1", features = ["extension-module"] }

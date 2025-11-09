@@ -1,7 +1,6 @@
 import sys
 from PySide6.QtCore import Qt, QThread, Signal, QLineF, QPointF
 from PySide6.QtWidgets import QApplication,QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, QSlider, QMessageBox, QFrame, QGridLayout
-import pytest_lib
 import time
 import mesh_viewer
 import canvas
